@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, accuracy_score
 import re
 import nltk
 from nltk.corpus import stopwords
@@ -99,7 +99,9 @@ class MetaphorDetector:
     def evaluate(self, X_test, y_test):
         """Evaluate the model performance."""
         predictions = self.predict(X_test)
-        return classification_report(y_test, predictions)
+        report = classification_report(y_test, predictions)
+        accuracy = accuracy_score(y_test, predictions)
+        return report, accuracy
 
     def grid_search(self, X, y):
         """Perform grid search for hyperparameter tuning."""
@@ -159,8 +161,16 @@ def main():
     detector.fit(X_train, y_train)
 
     # Evaluate the model
-    print("Model Performance:")
-    print(detector.evaluate(X_test, y_test))
+    print("\nModel Performance on Test Data:")
+    report, test_accuracy = detector.evaluate(X_test, y_test)
+    print(report)
+    print(f"Test Accuracy: {test_accuracy:.4f}")
+
+    # Compute training accuracy
+    print("\nModel Performance on Training Data:")
+    train_predictions = detector.predict(X_train)
+    train_accuracy = accuracy_score(y_train, train_predictions)
+    print(f"Training Accuracy: {train_accuracy:.4f}")
 
     # Example prediction
     example_text = pd.DataFrame({
