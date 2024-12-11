@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
@@ -13,7 +13,6 @@ from nltk.tokenize import word_tokenize
 # Download required NLTK data
 nltk.download('punkt')
 nltk.download('stopwords')
-nltk.download('punkt_tab')
 
 
 class MetaphorDetector:
@@ -102,6 +101,38 @@ class MetaphorDetector:
         predictions = self.predict(X_test)
         return classification_report(y_test, predictions)
 
+    def grid_search(self, X, y):
+        """Perform grid search for hyperparameter tuning."""
+        # Define the parameter grid
+        param_grid = {
+            'tfidf__max_features': [500, 1000, 2000],
+            'tfidf__ngram_range': [(1, 1), (1, 2), (1, 3)],
+            'classifier__n_estimators': [50, 100, 200],
+            'classifier__max_depth': [None, 10, 20, 30]
+        }
+
+        # Initialize GridSearchCV
+        grid_search = GridSearchCV(
+            self.pipeline,
+            param_grid,
+            cv=3,
+            scoring='accuracy',
+            n_jobs=-1,
+            verbose=2
+        )
+
+        # Prepare features
+        processed_X = self.prepare_features(X)
+
+        # Perform grid search
+        grid_search.fit(processed_X, y)
+
+        # Update pipeline with best parameters
+        self.pipeline = grid_search.best_estimator_
+
+        print("Best Parameters:", grid_search.best_params_)
+        return grid_search.best_params_
+
 
 # Example usage
 def main():
@@ -116,8 +147,15 @@ def main():
         random_state=42
     )
 
-    # Initialize and train the model
+    # Initialize the detector
     detector = MetaphorDetector()
+
+    # Perform grid search
+    print("Performing Grid Search...")
+    best_params = detector.grid_search(X_train, y_train)
+    print("Best parameters found:", best_params)
+
+    # Train the model with best parameters
     detector.fit(X_train, y_train)
 
     # Evaluate the model
