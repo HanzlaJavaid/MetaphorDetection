@@ -413,4 +413,7 @@ def main():
 
 
 if __name__ == "__main__":
+    print("This script will first run: Random Forrest Approach (Baseline)")
+    print("This script will then run: Naive Bayes Approach")
+    print("This script will finally run: Attention Based Residual Network (Best)")
     main()
